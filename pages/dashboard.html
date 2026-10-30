@@ -1,0 +1,490 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Claro PEPR | Dashboard Analítico</title>
+
+    <!-- Google Fonts: Plus Jakarta Sans -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap"
+        rel="stylesheet">
+
+    <!-- Bootstrap 5 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+
+    <!-- Font Awesome 6 -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+
+    <!-- CSS Base & Sistema de Temas -->
+    <link rel="stylesheet" href="../style/styles.css">
+
+    <!-- SheetJS para leitura do Excel -->
+    <script src="https://cdn.jsdelivr.net/npm/xlsx/dist/xlsx.full.min.js"></script>
+</head>
+
+<body>
+
+    <!-- NAVBAR MODERNA COM LINKS DE NAVEGAÇÃO E BOTÃO DE TEMA -->
+    <nav class="navbar navbar-dark navbar-claro mb-4 shadow-lg py-3 sticky-top">
+        <div class="container-fluid px-3 px-sm-4 d-flex justify-content-between align-items-center">
+
+            <!-- MARCA / LOGO -->
+            <div class="d-flex align-items-center gap-2 gap-sm-3 me-2">
+                <div class="brand-logo-icon flex-shrink-0">
+                    <i class="fa-solid fa-chart-line text-white"></i>
+                </div>
+                <div>
+                    <span class="navbar-brand mb-0 fw-bold fs-4 tracking-tight">
+                        Claro <span class="brand-divider">|</span> <span class="brand-accent">PEPR</span>
+                    </span>
+                    <span class="d-block text-navbar-sub small">Painel Executivo de Produtividade & Reincidência</span>
+                </div>
+            </div>
+
+            <!-- CONTROLES SUPERIORES (HOME & ALTERNADOR DE TEMA) -->
+            <div class="d-flex align-items-center gap-2">
+                <a href="../index.html"
+                    class="btn btn-theme-toggle btn-header-action d-flex align-items-center justify-content-center gap-2"
+                    title="Voltar à Página Inicial">
+                    <i class="fa-solid fa-house"></i>
+                    <span class="fw-semibold small d-none d-sm-inline">Home</span>
+                </a>
+
+                <button id="themeToggleBtn"
+                    class="btn btn-theme-toggle btn-header-action d-flex align-items-center justify-content-center gap-2"
+                    type="button" title="Alternar Tema">
+                    <i class="fa-solid fa-moon" id="themeIcon"></i>
+                    <span id="themeLabel" class="fw-semibold small d-none d-sm-inline">Modo Escuro</span>
+                </button>
+            </div>
+
+        </div>
+    </nav>
+
+    <div class="container mb-5">
+
+        <!-- CARD DE UPLOAD E FILTROS DE MESES -->
+        <div class="card card-upload-hero mb-4">
+            <div class="card-body p-4">
+                <div class="d-flex align-items-center justify-content-between mb-3 flex-wrap gap-2">
+                    <div class="d-flex align-items-center gap-2">
+                        <div class="icon-shape bg-success-subtle text-success rounded-3 p-2">
+                            <i class="fa-solid fa-file-excel fs-5"></i>
+                        </div>
+                        <div>
+                            <h5 class="fw-bold mb-0 text-main">Importar Base de Trouble Tickets</h5>
+                            <p class="text-custom-muted small mb-0">Formatos suportados: .xlsx, .xls</p>
+                        </div>
+                    </div>
+                    <span class="badge badge-tech"><i class="fa-solid fa-bolt me-1 text-warning"></i> Engine v4.1
+                        Active</span>
+                </div>
+
+                <div class="row g-3 align-items-center">
+                    <!-- INPUT E BOTÃO DE PROCESSAR -->
+                    <div class="col-lg-8">
+                        <div class="d-flex flex-column flex-sm-row gap-2 w-100">
+                            <input type="file" id="excelFile" accept=".xlsx, .xls" class="d-none">
+
+                            <label for="excelFile"
+                                class="file-custom-label flex-grow-1 d-flex align-items-center justify-content-between px-3 py-2 m-0">
+                                <span id="fileNameDisplay" class="text-custom-muted small text-truncate me-2">
+                                    <i class="fa-solid fa-folder-open me-2 text-warning"></i>Nenhum arquivo
+                                    selecionado...
+                                </span>
+                                <span class="btn-browse-badge">Procurar</span>
+                            </label>
+
+                            <button class="btn btn-claro px-4 d-flex align-items-center justify-content-center gap-2"
+                                type="button" id="loadBtn">
+                                <i class="fa-solid fa-bolt-lightning"></i>
+                                <span>Processar Painel</span>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- FILTRO DE MÊS -->
+                    <div class="col-lg-4">
+                        <div class="select-wrapper w-100">
+                            <select class="form-select form-select-custom w-100" id="monthFilter" disabled>
+                                <option value="ALL">Consolidado Geral (Todos os Meses)</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                <div
+                    class="upload-footer-info mt-3 pt-3 border-top border-custom d-flex align-items-center gap-2 text-custom-muted small">
+                    <i class="fa-solid fa-circle-info text-primary opacity-75"></i>
+                    <span>Cruzamento inteligente: <strong>Impacto</strong>, <strong>Login Solucionador</strong>,
+                        <strong>Prime ID</strong>, <strong>Descrição</strong> e <strong>Solução
+                            Detalhada</strong>.</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- ALERTA DE ERRO -->
+        <div id="alertBox" class="alert alert-danger d-none shadow-sm" role="alert"></div>
+
+        <!-- CONTEÚDO DO DASHBOARD (EXIBIDO APÓS PROCESSAR A PLANILHA) -->
+        <div id="dashboardContent" style="display: none;">
+
+            <!-- CARTÕES DE MÉTRICAS PRINCIPAIS (KPIs) -->
+            <div class="row g-3 mb-4">
+                <div class="col-6 col-md">
+                    <div class="card card-metric p-3 border-total h-100">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <h6 class="text-muted text-uppercase small fw-bold mb-1">Total Registros</h6>
+                                <h3 id="totalTickets" class="fw-bold text-dark mb-0">0</h3>
+                            </div>
+                            <i class="fa-solid fa-layer-group fs-2 text-secondary opacity-50"></i>
+                        </div>
+                        <div class="progress-micro">
+                            <div class="progress-bar bg-secondary" style="width: 100%"></div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-6 col-md">
+                    <div class="card card-metric p-3 border-sla h-100">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <h6 class="text-muted text-uppercase small fw-bold mb-1">SLA Cumprido</h6>
+                                <h3 id="totalSlaOk" class="fw-bold text-dark mb-0">0 <small
+                                        class="fs-6 text-success fw-normal" id="slaOkPercent">(0%)</small></h3>
+                            </div>
+                            <i class="fa-solid fa-circle-check fs-2 opacity-50" style="color: var(--claro-teal);"></i>
+                        </div>
+                        <div class="progress-micro">
+                            <div id="barSla" class="progress-bar"
+                                style="background-color: var(--claro-teal); width: 0%"></div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-6 col-md">
+                    <div class="card card-metric p-3 border-def h-100">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <h6 class="text-muted text-uppercase small fw-bold mb-1">Resoluções Definitivas</h6>
+                                <h3 id="totalDefinitive" class="fw-bold text-dark mb-0">0</h3>
+                            </div>
+                            <i class="fa-solid fa-shield-halved fs-2 text-success opacity-50"></i>
+                        </div>
+                        <div class="progress-micro">
+                            <div id="barDef" class="progress-bar bg-success" style="width: 0%"></div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-6 col-md">
+                    <div class="card card-metric p-3 border-loop h-100">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <h6 class="text-muted text-uppercase small fw-bold mb-1">Em Loop</h6>
+                                <h3 id="totalLoop" class="fw-bold text-dark mb-0">0</h3>
+                            </div>
+                            <i class="fa-solid fa-rotate-right fs-2 opacity-50" style="color: var(--claro-orange);"></i>
+                        </div>
+                        <div class="progress-micro">
+                            <div id="barLoop" class="progress-bar"
+                                style="background-color: var(--claro-orange); width: 0%"></div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-12 col-md">
+                    <div class="card card-metric p-3 border-no h-100">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <h6 class="text-muted text-uppercase small fw-bold mb-1">Estouros SLA (&gt; 4h)</h6>
+                                <h3 id="totalSlaNo" class="fw-bold text-dark mb-0">0</h3>
+                            </div>
+                            <i class="fa-solid fa-triangle-exclamation fs-2 text-danger opacity-50"></i>
+                        </div>
+                        <div class="progress-micro">
+                            <div id="barNo" class="progress-bar bg-danger" style="width: 0%"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- DETALHAMENTO DE SLA POR IMPACTO -->
+            <div class="row g-3 mb-4">
+                <div class="col-md-6">
+                    <div class="card shadow-sm p-3 border-start border-4 border-danger bg-white h-100">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <h6
+                                    class="text-muted text-uppercase small fw-bold mb-1 d-flex align-items-center gap-2">
+                                    <i class="fa-solid fa-power-off text-danger"></i> SLA Impacto Inoperante (Total)
+                                </h6>
+                                <h4 id="slaInoperanteText" class="fw-bold text-dark mb-0">0 chamados</h4>
+                                <small class="text-muted" id="slaInoperanteSub">No prazo: 0 | Estouros: 0</small>
+                            </div>
+                            <span class="badge bg-danger fs-6 px-3 py-2" id="badgeInop">0% estouro</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="card shadow-sm p-3 border-start border-4 border-warning bg-white h-100">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <h6
+                                    class="text-muted text-uppercase small fw-bold mb-1 d-flex align-items-center gap-2">
+                                    <i class="fa-solid fa-wave-square" style="color: var(--claro-orange);"></i> SLA
+                                    Impacto Parcial
+                                </h6>
+                                <h4 id="slaParcialText" class="fw-bold text-dark mb-0">0 chamados</h4>
+                                <small class="text-muted" id="slaParcialSub">No prazo: 0 | Estouros: 0</small>
+                            </div>
+                            <span class="badge bg-warning text-dark fs-6 px-3 py-2" id="badgeParcial">0% estouro</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- BLOCO DE DESTAQUE / PÓDIO DE SOLUCIONADORES -->
+            <div class="card shadow-sm mb-4 podium-card p-3">
+                <div class="card-body">
+                    <div class="d-flex align-items-center mb-3">
+                        <i class="fa-solid fa-trophy text-warning fs-3 me-2"></i>
+                        <h4 class="card-title text-dark fw-bold m-0 fs-5">Top Solucionadores (Equilíbrio de SLA e
+                            Resolução Raiz)</h4>
+                    </div>
+                    <div id="topPerformersText" class="text-secondary">Calculando ranking...</div>
+                </div>
+            </div>
+
+            <!-- INSIGHTS EXECUTIVOS INTELIGENTES -->
+            <div class="card shadow-sm mb-4 insight-box p-4">
+                <div class="d-flex align-items-center mb-3">
+                    <i class="fa-solid fa-lightbulb text-danger fs-3 me-2"></i>
+                    <h5 class="text-secondary fw-bold m-0 fs-5">Diagnóstico Operacional Inteligente</h5>
+                </div>
+                <div id="insightsText" class="text-muted">Processando relatórios...</div>
+            </div>
+
+            <!-- PLANO DE AÇÃO ESTRATÉGICO -->
+            <div class="card shadow-sm mb-4 action-box p-4">
+                <div class="d-flex align-items-center mb-3">
+                    <i class="fa-solid fa-clipboard-check fs-3 me-2" style="color: var(--claro-teal);"></i>
+                    <h5 class="text-secondary fw-bold m-0 fs-5">Plano de Ação Executivo (Ações Recomendadas)</h5>
+                </div>
+                <div id="actionPlanText" class="text-muted">Gerando recomendações...</div>
+            </div>
+
+            <!-- GRÁFICOS ANALÍTICOS -->
+            <div class="row g-4 mb-4">
+                <div class="col-lg-7">
+                    <div class="card shadow-sm p-4 h-100">
+                        <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
+                            <h5 class="text-secondary fw-bold m-0 d-flex align-items-center gap-2 fs-6">
+                                <i class="fa-solid fa-chart-column text-danger"></i>Volume de Atendimentos por
+                                Solucionador
+                            </h5>
+                            <span class="badge bg-light text-muted border">Ordenado por Carga</span>
+                        </div>
+                        <p class="text-muted small mb-3">Quantidade absoluta de chamados finalizados por cada login na
+                            operação.</p>
+                        <div class="chart-scroll-container">
+                            <canvas id="operatorChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-lg-5">
+                    <div class="card shadow-sm p-4 h-100">
+                        <h5 class="text-secondary fw-bold mb-3 d-flex align-items-center gap-2 fs-6">
+                            <i class="fa-solid fa-chart-pie" style="color: var(--claro-teal);"></i>Distribuição
+                            Proporcional
+                        </h5>
+                        <p class="text-muted small mb-3">Proporção de prazos cumpridos vs reincidência e estouros.</p>
+                        <div style="position: relative; height: 300px; width: 100%;">
+                            <canvas id="slaDoughnutChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- TABELA: TOP 10 MAIORES FINALIZADORES -->
+            <div class="card shadow-sm mb-4 p-3">
+                <div class="card-body p-2 p-sm-3">
+                    <div class="d-flex align-items-center mb-3">
+                        <i class="fa-solid fa-award text-warning fs-3 me-2"></i>
+                        <h5 class="card-title text-dark fw-bold m-0 fs-5">Top 10 Maiores Finalizadores de Chamados
+                            (Produtividade)</h5>
+                    </div>
+                    <p class="text-muted small mb-3">Operadores com maior volume de encerramentos de Trouble Tickets no
+                        período.</p>
+
+                    <div class="table-responsive-custom">
+                        <table class="table table-striped table-hover align-middle rounded overflow-hidden"
+                            id="tableTopProductivity">
+                            <thead>
+                                <tr>
+                                    <th># Posição</th>
+                                    <th>Login Solucionador</th>
+                                    <th>Total Finalizados</th>
+                                    <th>SLA Cumprido (&le; 4h)</th>
+                                    <th>Assertividade SLA</th>
+                                </tr>
+                            </thead>
+                            <tbody></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- TABELA: TOP 10 PRIME IDS COM MAIOR REINCIDÊNCIA -->
+            <div class="card shadow-sm mb-4 p-3">
+                <div class="card-body p-2 p-sm-3">
+                    <div class="d-flex align-items-center mb-3">
+                        <i class="fa-solid fa-circle-exclamation text-danger fs-3 me-2"></i>
+                        <h5 class="card-title text-danger fw-bold m-0 fs-5">Top 10 Prime IDs com Maior Reincidência</h5>
+                    </div>
+                    <p class="text-muted small mb-3">Identificadores (Prime IDs) com maior incidência de
+                        retornos/reaberturas técnicas.</p>
+
+                    <div class="table-responsive-custom">
+                        <table class="table table-striped table-hover align-middle rounded overflow-hidden"
+                            id="tableTopPrime">
+                            <thead>
+                                <tr>
+                                    <th># Posição</th>
+                                    <th>Prime Id</th>
+                                    <th>Total Ocorrências</th>
+                                    <th>Status Crítico</th>
+                                </tr>
+                            </thead>
+                            <tbody></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- TABELAS: MOTIVOS DE FALHA & SOLUÇÕES DETALHADAS -->
+            <div class="row g-4 mb-4">
+                <div class="col-lg-6">
+                    <div class="card shadow-sm h-100 p-3">
+                        <div class="card-body p-2 p-sm-3">
+                            <div class="d-flex align-items-center mb-3">
+                                <i class="fa-solid fa-bug text-danger fs-3 me-2"></i>
+                                <h5 class="card-title text-danger fw-bold m-0 fs-6">Top 10 Descrição Solução (Motivos)
+                                </h5>
+                            </div>
+                            <p class="text-muted small mb-3">Descrições de falhas mais recorrentes registradas no
+                                sistema.</p>
+
+                            <div class="table-responsive-custom">
+                                <table class="table table-striped table-hover align-middle rounded overflow-hidden"
+                                    id="tableTopCauses">
+                                    <thead>
+                                        <tr>
+                                            <th>#</th>
+                                            <th>Descrição Solução</th>
+                                            <th>Ocorrências</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody></tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-lg-6">
+                    <div class="card shadow-sm h-100 p-3">
+                        <div class="card-body p-2 p-sm-3">
+                            <div class="d-flex align-items-center mb-3">
+                                <i class="fa-solid fa-wrench text-success fs-3 me-2"></i>
+                                <h5 class="card-title text-success fw-bold m-0 fs-6">Top 10 Solução Detalhada</h5>
+                            </div>
+                            <p class="text-muted small mb-3">Ações e tratativas técnicas mais utilizadas nas soluções.
+                            </p>
+
+                            <div class="table-responsive-custom">
+                                <table class="table table-striped table-hover align-middle rounded overflow-hidden"
+                                    id="tableTopSolutions">
+                                    <thead>
+                                        <tr>
+                                            <th>#</th>
+                                            <th>Solução Detalhada</th>
+                                            <th>Ocorrências</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody></tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- TABELAS DE SEGMENTAÇÃO POR OPERADOR (GRUPO 1 E GRUPO 2) -->
+            <div class="card shadow-sm mb-4 p-3">
+                <div class="card-body p-2 p-sm-3">
+                    <div class="d-flex align-items-center mb-3">
+                        <span class="badge bg-success me-2 fs-6">Grupo 1</span>
+                        <h5 class="card-title text-success fw-bold m-0 fs-5">Solucionadores Eficazes (Resolução Raiz)
+                        </h5>
+                    </div>
+                    <p class="text-muted small mb-3">Profissionais que estancaram definitivamente tickets reincidentes.
+                    </p>
+
+                    <div class="table-responsive-custom">
+                        <table class="table table-striped table-hover align-middle rounded overflow-hidden"
+                            id="tableDefinitive">
+                            <thead>
+                                <tr>
+                                    <th>Login Solucionador</th>
+                                    <th>Total Atendimentos</th>
+                                    <th>SLA Cumprido (&le; 4h)</th>
+                                    <th>Estouro SLA (&gt; 4h)</th>
+                                    <th>Resoluções Definitivas</th>
+                                </tr>
+                            </thead>
+                            <tbody></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card shadow-sm p-3">
+                <div class="card-body p-2 p-sm-3">
+                    <div class="d-flex align-items-center mb-3">
+                        <span class="badge me-2 fs-6"
+                            style="background-color: var(--claro-orange) !important; color: white !important;">Grupo
+                            2</span>
+                        <h5 class="card-title fw-bold m-0 fs-5" style="color: var(--claro-orange) !important;">
+                            Solucionadores Parciais (Loop de Reincidência)</h5>
+                    </div>
+                    <p class="text-muted small mb-3">Fechamentos em tickets que resultaram em novas reaberturas
+                        posteriores.</p>
+
+                    <div class="table-responsive-custom">
+                        <table class="table table-striped table-hover align-middle rounded overflow-hidden"
+                            id="tableLoop">
+                            <thead>
+                                <tr>
+                                    <th>Login Solucionador</th>
+                                    <th>Total Atendimentos</th>
+                                    <th>SLA Cumprido (&le; 4h)</th>
+                                    <th>Estouro SLA (&gt; 4h)</th>
+                                    <th>Ocorrências em Loop</th>
+                                </tr>
+                            </thead>
+                            <tbody></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- SCRIPT CHART.JS E LOGICA DO DASHBOARD -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="../js/main.js"></script>
+
+</body>
+
+</html>

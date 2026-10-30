@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Claro PEPR | Inteligência Operacional de Trouble Tickets</title>
+
+    <!-- Google Fonts: Plus Jakarta Sans -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap"
+        rel="stylesheet">
+
+    <!-- Bootstrap 5 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+
+    <!-- Font Awesome 6 -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+
+    <!-- CSS Base & CSS Exclusivo da Home -->
+    <link rel="stylesheet" href="./style/styles.css">
+    <link rel="stylesheet" href="./style/home.css">
+</head>
+
+<body>
+
+    <!-- NAVBAR HOME COM LINK PARA O DASHBOARD -->
+    <nav class="navbar navbar-dark navbar-claro py-3 sticky-top">
+        <div class="container-fluid px-3 px-sm-4 d-flex justify-content-between align-items-center">
+
+            <div class="d-flex align-items-center gap-2 gap-sm-3">
+                <div class="brand-logo-icon flex-shrink-0">
+                    <i class="fa-solid fa-chart-line text-white"></i>
+                </div>
+                <div>
+                    <span class="navbar-brand mb-0 fw-bold fs-4 tracking-tight">
+                        Claro <span class="brand-divider">|</span> <span class="brand-accent">PEPR</span>
+                    </span>
+                    <span class="d-block text-navbar-sub small">Painel Executivo de Produtividade & Reincidência</span>
+                </div>
+            </div>
+
+            <!-- NAVEGAÇÃO SUPERIOR (DESKTOP & MOBILE INTEGRADO) -->
+            <div class="d-flex align-items-center gap-2">
+                <a href="./pages/dashboard.html"
+                    class="btn btn-claro btn-header-action d-flex align-items-center justify-content-center gap-2"
+                    title="Acessar Painel Analítico">
+                    <i class="fa-solid fa-gauge-high"></i>
+                    <span class="d-none d-sm-inline">Painel</span>
+                </a>
+
+                <button id="themeToggleBtn"
+                    class="btn btn-theme-toggle btn-header-action d-flex align-items-center justify-content-center gap-2"
+                    type="button" title="Alternar Tema">
+                    <i class="fa-solid fa-moon" id="themeIcon"></i>
+                    <span id="themeLabel" class="fw-semibold small d-none d-sm-inline">Modo Escuro</span>
+                </button>
+            </div>
+
+        </div>
+    </nav>
+
+    <!-- HERO SECTION -->
+    <!-- HERO SECTION -->
+    <section class="hero-section text-center position-relative overflow-hidden px-3">
+        <div class="hero-glow"></div>
+        <div class="container position-relative z-1 py-4 py-sm-5">
+            <span class="badge badge-hero mb-3 hero-anim">
+                <i class="fa-solid fa-bolt me-1 text-warning"></i> Telecom Analytics Platform v4.1
+            </span>
+            <h1 class="hero-title fw-extrabold mb-3 hero-anim">
+                Inteligência Operacional em <span class="brand-accent">Trouble Tickets</span>
+            </h1>
+            <p class="hero-desc lead text-custom-muted mx-auto hero-anim mb-4">
+                Transforme bases complexas do Excel em relatórios executivos instantâneos. Diagnóstico de SLA,
+                reincidência de falhas técnicas e produtividade por operador.
+            </p>
+
+            <!-- BOTÕES DA HERO: FLEX-COLUMN NO MOBILE / FLEX-ROW NO DESKTOP -->
+            <div
+                class="d-flex flex-column flex-sm-row align-items-stretch align-items-sm-center justify-content-center gap-2 gap-sm-3 hero-anim mb-4 mb-sm-5 w-100 mx-auto hero-btn-container">
+                <a href="./index.html"
+                    class="btn btn-claro btn-hero px-4 d-flex align-items-center justify-content-center gap-2 shadow-lg">
+                    <i class="fa-solid fa-file-excel"></i>
+                    <span>Importar Planilha (.xlsx)</span>
+                </a>
+                <a href="#features"
+                    class="btn btn-outline-custom btn-hero px-4 d-flex align-items-center justify-content-center gap-2">
+                    <i class="fa-solid fa-circle-play"></i>
+                    <span>Ver Recursos</span>
+                </a>
+            </div>
+
+            <!-- PREVIEW CARD INTERATIVO -->
+            <div class="hero-mockup-card card shadow-lg p-3 mx-auto mt-4 hero-anim">
+                <div class="mockup-header d-flex align-items-center gap-2 mb-3">
+                    <span class="dot bg-danger"></span>
+                    <span class="dot bg-warning"></span>
+                    <span class="dot bg-success"></span>
+                    <span class="small text-custom-muted ms-2">PEPR Operational Engine</span>
+                </div>
+                <div class="row g-2 g-sm-3">
+                    <div class="col-6 col-md-3">
+                        <div class="p-2 p-sm-3 border border-custom rounded-3 text-start bg-subtle">
+                            <small class="text-custom-muted d-block fs-micro">Taxa SLA Global</small>
+                            <h4 class="fw-bold mb-0 text-success fs-metric">98.4%</h4>
+                        </div>
+                    </div>
+                    <div class="col-6 col-md-3">
+                        <div class="p-2 p-sm-3 border border-custom rounded-3 text-start bg-subtle">
+                            <small class="text-custom-muted d-block fs-micro">Reincidências</small>
+                            <h4 class="fw-bold mb-0 text-warning fs-metric">12 Loops</h4>
+                        </div>
+                    </div>
+                    <div class="col-6 col-md-3">
+                        <div class="p-2 p-sm-3 border border-custom rounded-3 text-start bg-subtle">
+                            <small class="text-custom-muted d-block fs-micro">Casos Inoperantes</small>
+                            <h4 class="fw-bold mb-0 text-danger fs-metric">03 Críticos</h4>
+                        </div>
+                    </div>
+                    <div class="col-6 col-md-3">
+                        <div class="p-2 p-sm-3 border border-custom rounded-3 text-start bg-subtle">
+                            <small class="text-custom-muted d-block fs-micro">Solucionador Top</small>
+                            <h4 class="fw-bold mb-0 text-primary fs-metric">Grupo 1</h4>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- RECURSOS CHAVE (SCROLL TRIGGER) -->
+    <section id="features" class="py-5">
+        <div class="container py-4">
+            <div class="text-center mb-5 feature-header">
+                <h2 class="fw-bold fs-2 text-main">Recursos Estratégicos do Sistema</h2>
+                <p class="text-custom-muted">Desenvolvido especificamente para a dinâmica de operação Claro Telecom</p>
+            </div>
+
+            <div class="row g-4">
+                <div class="col-md-4 feature-card-item">
+                    <div class="card h-100 p-4 border-custom">
+                        <div class="feature-icon-wrapper mb-3 text-danger">
+                            <i class="fa-solid fa-chart-column fs-3"></i>
+                        </div>
+                        <h5 class="fw-bold text-main mb-2">Cross-Data Inteligente</h5>
+                        <p class="text-custom-muted small mb-0">
+                            Processamento automático de <i>Prime IDs</i>, <i>Impacto</i> e colunas de solução em
+                            segundos, sem necessidade de banco de dados externo.
+                        </p>
+                    </div>
+                </div>
+
+                <div class="col-md-4 feature-card-item">
+                    <div class="card h-100 p-4 border-custom">
+                        <div class="feature-icon-wrapper mb-3 text-warning">
+                            <i class="fa-solid fa-rotate-right fs-3"></i>
+                        </div>
+                        <h5 class="fw-bold text-main mb-2">Detecção de Loops</h5>
+                        <p class="text-custom-muted small mb-0">
+                            Identifica tratativas paliativas e loops de reincidência contínua, separando o Grupo 1
+                            (Eficazes) do Grupo 2 (Parciais).
+                        </p>
+                    </div>
+                </div>
+
+                <div class="col-md-4 feature-card-item">
+                    <div class="card h-100 p-4 border-custom">
+                        <div class="feature-icon-wrapper mb-3 text-teal">
+                            <i class="fa-solid fa-lightbulb fs-3" style="color: var(--claro-teal);"></i>
+                        </div>
+                        <h5 class="fw-bold text-main mb-2">Insights Auto-Gerados</h5>
+                        <p class="text-custom-muted small mb-0">
+                            Gera diagnósticos e planos de ação executivos prontos para reuniões de alinhamento com a
+                            diretoria e equipes de campo.
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- FOOTER SIMPLE & CLEAN -->
+    <footer class="py-4 border-top border-custom text-center text-custom-muted small">
+        <div class="container">
+            <span>Claro PEPR Engine • Desenvolvido para Gestão de Operações Telecom</span>
+        </div>
+    </footer>
+
+    <!-- GSAP & SCROLLTRIGGER CDN -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
+
+    <!-- SCRIPT DE TEMA E SCRIPT EXCLUSIVO DA HOME -->
+    <script src="./js/home.js"></script>
+
+</body>
+
+</html>

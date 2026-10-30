@@ -1,0 +1,154 @@
+/* style/home.css - Estilos Exclusivos da Landing Page */
+
+/* Hero Glow Background */
+.hero-section {
+  padding: 40px 0 60px 0;
+}
+
+.hero-glow {
+  position: absolute;
+  top: -100px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 100%;
+  max-width: 600px;
+  height: 400px;
+  background: radial-gradient(circle, rgba(218, 41, 28, 0.18) 0%, rgba(0, 0, 0, 0) 70%);
+  z-index: 0;
+  pointer-events: none;
+}
+
+.fw-extrabold {
+  font-weight: 800;
+}
+
+.hero-title {
+  font-size: clamp(1.85rem, 5vw, 3.25rem);
+  line-height: 1.15;
+}
+
+.hero-desc {
+  font-size: clamp(0.95rem, 2.5vw, 1.2rem);
+  max-width: 720px;
+}
+
+.badge-hero {
+  background-color: var(--bg-card-subtle);
+  color: var(--text-main);
+  border: 1px solid var(--border-color);
+  padding: 8px 16px;
+  border-radius: 30px;
+  font-weight: 600;
+  font-size: 0.8rem;
+}
+
+.hero-btn-container {
+  max-width: 540px;
+}
+
+.btn-hero {
+  height: 48px;
+  font-size: 0.95rem;
+}
+
+.btn-outline-custom {
+  background-color: transparent;
+  color: var(--text-main);
+  border: 1px solid var(--border-color);
+  border-radius: 10px;
+  font-weight: 600;
+  transition: all 0.2s ease;
+}
+
+.btn-outline-custom:hover {
+  background-color: var(--bg-card-subtle);
+  color: var(--text-main);
+  border-color: var(--claro-teal);
+}
+
+/* Mockup Card do Hero */
+.hero-mockup-card {
+  max-width: 920px;
+  border-radius: 20px !important;
+  background-color: var(--bg-card) !important;
+  border: 1px solid var(--border-color) !important;
+  backdrop-filter: blur(12px);
+}
+
+.mockup-header .dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  display: inline-block;
+}
+
+.bg-subtle {
+  background-color: var(--bg-card-subtle) !important;
+}
+
+.feature-icon-wrapper {
+  width: 54px;
+  height: 54px;
+  background-color: var(--bg-card-subtle);
+  border-radius: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid var(--border-color);
+}
+
+/* ==========================================================================
+   MEDIA QUERIES - MOBILE RESPONSIVENESS (< 576px)
+   ========================================================================== */
+@media (max-width: 575.98px) {
+  .hero-btn-container {
+    width: 100% !important;
+    padding: 0 10px;
+  }
+
+  .btn-hero {
+    width: 100% !important;
+    height: 46px;
+    font-size: 0.9rem !important;
+    white-space: nowrap;
+  }
+
+  .fs-micro {
+    font-size: 0.7rem !important;
+  }
+
+  .fs-metric {
+    font-size: 1.1rem !important;
+  }
+}
+
+/* ==========================================================================
+   Padronização Fina dos Botões do Header (Desktop)
+   ========================================================================== */
+.btn-header-action {
+  height: 40px !important; /* Força exatamente a mesma altura nos dois */
+  padding: 0 18px !important; /* Padding interno idêntico */
+  border-radius: 10px !important; /* Mesmo raio nos cantos */
+  font-size: 0.875rem !important; /* Mesma tipografia proporcional */
+  font-weight: 600 !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  line-height: 1 !important;
+  box-sizing: border-box !important;
+}
+
+/* Garante que a borda do botão de tema não compense a altura em 2px */
+.btn-theme-toggle {
+  border: 1px solid rgba(255, 255, 255, 0.15) !important;
+}
+
+[data-theme='light'] .btn-theme-toggle {
+  border: 1px solid var(--border-color) !important;
+}
+
+@media (max-width: 768px) {
+  .brand-logo-icon {
+    display: none !important; /* Oculta o ícone do logotipo em telas menores */
+  }
+}

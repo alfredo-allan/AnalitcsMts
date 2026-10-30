@@ -1,0 +1,404 @@
+/* style/styles.css - Modern Telecom Dashboard Theme */
+
+/* ==========================================================================
+   1. Design System & Tokens
+   ========================================================================== */
+:root {
+  --font-primary: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+
+  --claro-red: #da291c;
+  --claro-red-hover: #b81e13;
+  --claro-red-glow: rgba(218, 41, 28, 0.25);
+  --claro-dark: #121417;
+  --claro-teal: #00a8b5;
+  --claro-orange: #ff7a00;
+  --claro-green: #10b981;
+
+  /* Theme Light (Padrão) */
+  --bg-main: #f4f6f9;
+  --bg-card: #ffffff;
+  --bg-card-subtle: #f8fafc;
+  --bg-podium-item: #ffffff;
+
+  --text-main: #0f172a;
+  --text-muted: #64748b;
+  --text-navbar-sub: #94a3b8;
+
+  --border-color: #e2e8f0;
+  --border-custom: #f1f5f9;
+
+  --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.05);
+  --shadow-card: 0 4px 20px -2px rgba(0, 0, 0, 0.05);
+  --shadow-hover: 0 12px 28px -4px rgba(0, 0, 0, 0.1);
+
+  --input-bg: #ffffff;
+  --input-text: #0f172a;
+  --table-header-bg: #1e293b;
+  --table-header-text: #f8fafc;
+}
+
+[data-theme='dark'] {
+  /* Theme Dark Pro - Alto Contraste */
+  --bg-main: #0a0c10;
+  --bg-card: #14171f;
+  --bg-card-subtle: #1c202b;
+  --bg-podium-item: #1e2330;
+
+  --text-main: #f8fafc;
+  --text-muted: #94a3b8;
+  --text-navbar-sub: #cbd5e1;
+
+  --border-color: #262b36;
+  --border-custom: #1f2430;
+
+  --shadow-sm: 0 2px 4px rgba(0, 0, 0, 0.4);
+  --shadow-card: 0 8px 24px rgba(0, 0, 0, 0.35);
+  --shadow-hover: 0 14px 32px rgba(0, 0, 0, 0.5);
+
+  --input-bg: #1c202b;
+  --input-text: #f8fafc;
+  --table-header-bg: #0f1117;
+  --table-header-text: #f8fafc;
+}
+
+/* ==========================================================================
+   2. Base & Typography
+   ========================================================================== */
+body {
+  background-color: var(--bg-main) !important;
+  font-family: var(--font-primary) !important;
+  color: var(--text-main) !important;
+  transition:
+    background-color 0.25s ease,
+    color 0.25s ease;
+  letter-spacing: -0.01em;
+}
+
+.text-main {
+  color: var(--text-main) !important;
+}
+.text-custom-muted {
+  color: var(--text-muted) !important;
+}
+.text-navbar-sub {
+  color: var(--text-navbar-sub) !important;
+}
+
+/* Navbar */
+.navbar-claro {
+  background-color: var(--claro-dark) !important;
+  border-bottom: 3px solid var(--claro-red);
+  backdrop-filter: blur(10px);
+}
+.brand-logo-icon {
+  width: 38px;
+  height: 38px;
+  background: linear-gradient(135deg, var(--claro-red) 0%, #ff4d4d 100%);
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 4px 12px var(--claro-red-glow);
+}
+.brand-accent {
+  color: var(--claro-red);
+  font-weight: 800;
+}
+.brand-divider {
+  color: #334155;
+}
+
+/* Theme Toggle Button */
+.btn-theme-toggle {
+  background: rgba(255, 255, 255, 0.08);
+  color: #f8fafc;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: 10px;
+  padding: 8px 16px;
+  transition: all 0.2s ease;
+}
+.btn-theme-toggle:hover {
+  background: rgba(255, 255, 255, 0.18);
+  color: #ffffff;
+}
+
+/* ==========================================================================
+   3. Card Component & Inputs Customizados
+   ========================================================================== */
+.card {
+  background-color: var(--bg-card) !important;
+  color: var(--text-main) !important;
+  border: 1px solid var(--border-color) !important;
+  border-radius: 16px !important;
+  box-shadow: var(--shadow-card) !important;
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.card-upload-hero {
+  border: 1px solid var(--border-color) !important;
+  position: relative;
+  overflow: hidden;
+}
+
+/* Label de Arquivo Customizado */
+.file-custom-label {
+  background-color: var(--input-bg);
+  border: 1px solid var(--border-color);
+  border-radius: 10px;
+  cursor: pointer;
+  height: 44px;
+  transition: all 0.2s ease;
+}
+
+.file-custom-label:hover {
+  border-color: var(--claro-teal);
+}
+
+.btn-browse-badge {
+  background-color: var(--bg-card-subtle);
+  color: var(--text-main);
+  border: 1px solid var(--border-color);
+  padding: 4px 12px;
+  border-radius: 6px;
+  font-size: 0.8rem;
+  font-weight: 600;
+}
+
+/* Select de Meses */
+.form-select-custom {
+  background-color: var(--input-bg) !important;
+  color: var(--input-text) !important;
+  border: 1px solid var(--border-color) !important;
+  border-radius: 10px !important;
+  height: 44px;
+  padding: 8px 14px;
+  font-size: 0.875rem;
+}
+
+.form-select-custom:focus {
+  border-color: var(--claro-red) !important;
+  box-shadow: 0 0 0 3px var(--claro-red-glow) !important;
+}
+
+/* Botão Claro */
+.btn-claro {
+  background: linear-gradient(135deg, var(--claro-red) 0%, #e31b0c 100%) !important;
+  color: #ffffff !important;
+  border-radius: 10px !important;
+  font-weight: 600;
+  height: 44px;
+  border: none !important;
+  box-shadow: 0 4px 14px var(--claro-red-glow);
+  transition: all 0.2s ease;
+  white-space: nowrap;
+}
+
+.btn-claro:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 6px 18px rgba(218, 41, 28, 0.4);
+}
+
+.badge-tech {
+  background-color: var(--bg-card-subtle);
+  color: var(--text-muted);
+  border: 1px solid var(--border-color);
+  padding: 6px 12px;
+  border-radius: 20px;
+  font-size: 0.78rem;
+  font-weight: 600;
+}
+
+#excelFile,
+#monthFilter,
+#loadBtn {
+  font-size: smaller;
+}
+
+/* ==========================================================================
+   4. Metrics Cards & Tables
+   ========================================================================== */
+.card-metric {
+  position: relative;
+  overflow: hidden;
+  border: 1px solid var(--border-color) !important;
+}
+
+.card-metric:hover {
+  transform: translateY(-4px);
+  box-shadow: var(--shadow-hover) !important;
+}
+
+.card-metric::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 4px;
+  height: 100%;
+}
+
+.border-total::before {
+  background-color: var(--text-muted);
+}
+.border-sla::before {
+  background-color: var(--claro-teal);
+}
+.border-def::before {
+  background-color: var(--claro-green);
+}
+.border-loop::before {
+  background-color: var(--claro-orange);
+}
+.border-no::before {
+  background-color: var(--claro-red);
+}
+
+.progress-micro {
+  height: 6px;
+  border-radius: 10px;
+  background-color: var(--bg-card-subtle) !important;
+  margin-top: 12px;
+  overflow: hidden;
+}
+
+.table {
+  color: var(--text-main) !important;
+  --bs-table-bg: transparent !important;
+  margin-bottom: 0;
+}
+
+.table thead th {
+  background-color: var(--table-header-bg) !important;
+  color: var(--table-header-text) !important;
+  border: none !important;
+  font-weight: 600;
+  font-size: 0.85rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  padding: 14px 16px;
+}
+
+.table tbody td {
+  border-color: var(--border-custom) !important;
+  color: var(--text-main) !important;
+  font-size: 0.9rem;
+  padding: 14px 16px;
+}
+
+.border-custom {
+  border-color: var(--border-custom) !important;
+}
+
+/* ==========================================================================
+   Ajustes Responsivos Mobile (Navbar & Alinhamento Superior Direito)
+   ========================================================================== */
+@media (max-width: 575.98px) {
+  /* Mantém o container em linha única flexível */
+  .navbar .container-fluid {
+    flex-wrap: nowrap !important;
+    align-items: center !important;
+  }
+
+  /* Redimensiona o logotipo vermelho para casar com a altura do botão no mobile */
+  .brand-logo-icon {
+    width: 36px !important;
+    height: 36px !important;
+    border-radius: 8px !important;
+  }
+
+  /* Botão de tema como quadrado perfeito no canto superior direito */
+  .btn-theme-toggle {
+    width: 36px !important;
+    height: 36px !important;
+    padding: 0 !important;
+    border-radius: 8px !important;
+  }
+
+  /* Ajuste no tamanho do texto para caber sem empurrar o layout */
+  .navbar-brand {
+    font-size: 1.05rem !important;
+    line-height: 1.2;
+  }
+
+  .text-navbar-sub {
+    font-size: 0.7rem !important;
+    line-height: 1.2;
+    display: -webkit-box;
+    -webkit-line-clamp: 1;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+}
+
+/* Container de Scroll Horizontal Suave para Tabelas no Mobile/Tablet */
+.table-responsive-custom {
+  width: 100%;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  margin-bottom: 1rem;
+}
+
+/* Evita que o texto das células quebre de forma feia ao rolar */
+@media (max-width: 991.98px) {
+  .table-responsive-custom .table {
+    white-space: nowrap !important;
+    min-width: 650px; /* Garante estrutura mínima legível durante o scroll */
+  }
+}
+
+/* ==========================================================================
+   Padronização Fina dos Botões de Ação do Header (Home & Tema)
+   ========================================================================== */
+.btn-header-action {
+  height: 40px !important;
+  padding: 0 16px !important;
+  border-radius: 10px !important;
+  font-size: 0.875rem !important;
+  font-weight: 600 !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  line-height: 1 !important;
+  box-sizing: border-box !important;
+  transition: all 0.2s ease !important;
+}
+
+/* Estilo Base Unificado (Glassmorphism) */
+.btn-theme-toggle {
+  background: rgba(255, 255, 255, 0.08) !important;
+  color: #f8fafc !important;
+  border: 1px solid rgba(255, 255, 255, 0.15) !important;
+  backdrop-filter: blur(6px);
+  text-decoration: none !important;
+}
+
+.btn-theme-toggle:hover {
+  background: rgba(255, 255, 255, 0.18) !important;
+  color: #ffffff !important;
+  border-color: rgba(255, 255, 255, 0.3) !important;
+}
+
+/* Suporte para quando o Tema Claro estiver Ativo */
+[data-theme='light'] .btn-theme-toggle {
+  background: rgba(0, 0, 0, 0.04) !important;
+  color: var(--text-main) !important;
+  border: 1px solid var(--border-color) !important;
+}
+
+[data-theme='light'] .btn-theme-toggle:hover {
+  background: rgba(0, 0, 0, 0.08) !important;
+  color: var(--text-main) !important;
+}
+
+/* ==========================================================================
+   Mobile Responsiveness (< 576px)
+   ========================================================================== */
+@media (max-width: 575.98px) {
+  .btn-header-action {
+    width: 40px !important;
+    height: 40px !important;
+    padding: 0 !important;
+    border-radius: 10px !important;
+    flex-shrink: 0 !important;
+  }
+}
