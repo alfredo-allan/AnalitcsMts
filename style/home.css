@@ -1,8 +1,12 @@
 /* style/home.css - Estilos Exclusivos da Landing Page */
 
-/* Hero Glow Background */
+/* ==========================================================================
+   1. Hero Section & Background Effect
+   ========================================================================== */
 .hero-section {
-  padding: 40px 0 60px 0;
+  padding: 50px 0 90px 0 !important;
+  position: relative;
+  z-index: 1;
 }
 
 .hero-glow {
@@ -42,8 +46,12 @@
   font-size: 0.8rem;
 }
 
+/* Container de Botões da Hero */
 .hero-btn-container {
   max-width: 540px;
+  position: relative;
+  z-index: 10 !important;
+  margin-bottom: 2.5rem !important;
 }
 
 .btn-hero {
@@ -66,13 +74,23 @@
   border-color: var(--claro-teal);
 }
 
-/* Mockup Card do Hero */
+/* ==========================================================================
+   2. Mockup Card Interativo
+   ========================================================================== */
 .hero-mockup-card {
+  position: relative;
+  z-index: 2 !important;
   max-width: 920px;
   border-radius: 20px !important;
   background-color: var(--bg-card) !important;
   border: 1px solid var(--border-color) !important;
   backdrop-filter: blur(12px);
+  margin-top: 1.5rem !important;
+  box-shadow: 0 20px 40px -15px rgba(0, 0, 0, 0.08) !important;
+}
+
+[data-theme='dark'] .hero-mockup-card {
+  box-shadow: 0 20px 40px -15px rgba(0, 0, 0, 0.5) !important;
 }
 
 .mockup-header .dot {
@@ -98,8 +116,56 @@
 }
 
 /* ==========================================================================
-   MEDIA QUERIES - MOBILE RESPONSIVENESS (< 576px)
+   3. Padronização dos Botões de Ação do Header (Glassmorphism & Simetria)
    ========================================================================== */
+.btn-header-action {
+  height: 40px !important;
+  padding: 0 16px !important;
+  border-radius: 10px !important;
+  font-size: 0.875rem !important;
+  font-weight: 600 !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  line-height: 1 !important;
+  box-sizing: border-box !important;
+  transition: all 0.2s ease !important;
+}
+
+.btn-theme-toggle {
+  background: rgba(255, 255, 255, 0.08) !important;
+  color: #f8fafc !important;
+  border: 1px solid rgba(255, 255, 255, 0.15) !important;
+  backdrop-filter: blur(6px);
+  text-decoration: none !important;
+}
+
+.btn-theme-toggle:hover {
+  background: rgba(255, 255, 255, 0.18) !important;
+  color: #ffffff !important;
+  border-color: rgba(255, 255, 255, 0.3) !important;
+}
+
+[data-theme='light'] .btn-theme-toggle {
+  background: rgba(0, 0, 0, 0.04) !important;
+  color: var(--text-main) !important;
+  border: 1px solid var(--border-color) !important;
+}
+
+[data-theme='light'] .btn-theme-toggle:hover {
+  background: rgba(0, 0, 0, 0.08) !important;
+  color: var(--text-main) !important;
+}
+
+/* ==========================================================================
+   4. Media Queries - Responsividade Mobile & Tablet (< 576px / < 768px)
+   ========================================================================== */
+@media (max-width: 768px) {
+  .brand-logo-icon {
+    display: none !important; /* Oculta o ícone do logotipo em telas menores */
+  }
+}
+
 @media (max-width: 575.98px) {
   .hero-btn-container {
     width: 100% !important;
@@ -113,42 +179,19 @@
     white-space: nowrap;
   }
 
+  .btn-header-action {
+    width: 40px !important;
+    height: 40px !important;
+    padding: 0 !important;
+    border-radius: 10px !important;
+    flex-shrink: 0 !important;
+  }
+
   .fs-micro {
     font-size: 0.7rem !important;
   }
 
   .fs-metric {
     font-size: 1.1rem !important;
-  }
-}
-
-/* ==========================================================================
-   Padronização Fina dos Botões do Header (Desktop)
-   ========================================================================== */
-.btn-header-action {
-  height: 40px !important; /* Força exatamente a mesma altura nos dois */
-  padding: 0 18px !important; /* Padding interno idêntico */
-  border-radius: 10px !important; /* Mesmo raio nos cantos */
-  font-size: 0.875rem !important; /* Mesma tipografia proporcional */
-  font-weight: 600 !important;
-  display: inline-flex !important;
-  align-items: center !important;
-  justify-content: center !important;
-  line-height: 1 !important;
-  box-sizing: border-box !important;
-}
-
-/* Garante que a borda do botão de tema não compense a altura em 2px */
-.btn-theme-toggle {
-  border: 1px solid rgba(255, 255, 255, 0.15) !important;
-}
-
-[data-theme='light'] .btn-theme-toggle {
-  border: 1px solid var(--border-color) !important;
-}
-
-@media (max-width: 768px) {
-  .brand-logo-icon {
-    display: none !important; /* Oculta o ícone do logotipo em telas menores */
   }
 }

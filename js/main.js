@@ -1,54 +1,143 @@
+// js/main.js - Lógica do Dashboard Analítico Claro PEPR & Integração de Modais/Toasts
+
 let globalRawData = [];
 let opChartInstance = null;
 let doughnutChartInstance = null;
 
-document.getElementById("loadBtn").addEventListener("click", function () {
-  const fileInput = document.getElementById("excelFile");
-  const alertBox = document.getElementById("alertBox");
-  alertBox.classList.add("d-none");
-  alertBox.innerText = "";
+document.addEventListener("DOMContentLoaded", () => {
+  // Inicialização do listener de upload de arquivos Excel
+  const loadBtn = document.getElementById("loadBtn");
+  if (loadBtn) {
+    loadBtn.addEventListener("click", function () {
+      const fileInput = document.getElementById("excelFile");
+      const alertBox = document.getElementById("alertBox");
+      if (alertBox) {
+        alertBox.classList.add("d-none");
+        alertBox.innerText = "";
+      }
 
-  if (fileInput.files.length === 0) {
-    alert("Por favor, selecione um arquivo Excel (.xlsx).");
-    return;
-  }
-
-  const file = fileInput.files[0];
-  const reader = new FileReader();
-
-  reader.onload = function (e) {
-    try {
-      const data = new Uint8Array(e.target.result);
-      const workbook = XLSX.read(data, { type: "array" });
-      const firstSheet = workbook.Sheets[workbook.SheetNames[0]];
-      globalRawData = XLSX.utils.sheet_to_json(firstSheet);
-
-      if (!globalRawData || globalRawData.length === 0) {
-        showAlert("A planilha está vazia ou os dados não puderam ser lidos.");
+      if (!fileInput || fileInput.files.length === 0) {
+        showAppModal(
+          "Seleção de Arquivo Requerida",
+          "Por favor, selecione uma base de dados no formato Excel (.xlsx ou .xls) para iniciar a análise.",
+          "warning"
+        );
         return;
       }
 
-      populateMonthFilter(globalRawData);
+      const file = fileInput.files[0];
+      const reader = new FileReader();
+
+      reader.onload = function (e) {
+        try {
+          const data = new Uint8Array(e.target.result);
+          const workbook = XLSX.read(data, { type: "array" });
+
+          if (!workbook.SheetNames || workbook.SheetNames.length === 0) {
+            showAppModal(
+              "Arquivo Inválido",
+              "Não foi possível encontrar planilhas válidas dentro do arquivo fornecido.",
+              "danger"
+            );
+            return;
+          }
+
+          const firstSheet = workbook.Sheets[workbook.SheetNames[0]];
+          globalRawData = XLSX.utils.sheet_to_json(firstSheet);
+
+          if (!globalRawData || globalRawData.length === 0) {
+            showAlert(
+              "A planilha está vazia ou os dados não puderam ser lidos."
+            );
+            showAppModal(
+              "Planilha Vazia",
+              "A planilha selecionada está sem registros ou possui formato inconsistente.",
+              "warning"
+            );
+            return;
+          }
+
+          populateMonthFilter(globalRawData);
+          processData(globalRawData);
+
+          const dashContent = document.getElementById("dashboardContent");
+          if (dashContent) dashContent.style.display = "block";
+
+          // Toast dinâmico de sucesso
+          showToast(
+            `Base carregada com sucesso! ${globalRawData.length} registros processados.`,
+            "success"
+          );
+        } catch (error) {
+          showAlert("Erro ao processar a planilha: " + error.message);
+          showAppModal(
+            "Erro de Processamento",
+            `Falha técnica ao tentar ler a estrutura da planilha: <strong>${error.message}</strong>`,
+            "danger"
+          );
+        }
+      };
+
+      reader.readAsArrayBuffer(file);
+    });
+  }
+
+  // Listener para mudança de filtro por mês
+  const monthFilter = document.getElementById("monthFilter");
+  if (monthFilter) {
+    monthFilter.addEventListener("change", function () {
       processData(globalRawData);
+      showToast("Filtro de período atualizado com sucesso.", "info");
+    });
+  }
 
-      document.getElementById("dashboardContent").style.display = "block";
-    } catch (error) {
-      showAlert("Erro ao processar a planilha: " + error.message);
-    }
-  };
-  reader.readAsArrayBuffer(file);
+  // Listener para exibição do nome do arquivo selecionado
+  const excelFileInput = document.getElementById("excelFile");
+  if (excelFileInput) {
+    excelFileInput.addEventListener("change", function (e) {
+      const fileName = e.target.files[0]
+        ? e.target.files[0].name
+        : "Nenhum arquivo selecionado...";
+      const fileNameDisplay = document.getElementById("fileNameDisplay");
+      if (fileNameDisplay) {
+        fileNameDisplay.innerHTML = `<i class="fa-solid fa-file-excel me-2 text-success"></i>${fileName}`;
+      }
+    });
+  }
+
+  // Controle de alternância de Tema (Light / Dark)
+  const themeToggleBtn = document.getElementById("themeToggleBtn");
+  const themeLabel = document.getElementById("themeLabel");
+  const themeIcon = document.getElementById("themeIcon");
+
+  if (themeToggleBtn) {
+    themeToggleBtn.addEventListener("click", () => {
+      const currentTheme = document.documentElement.getAttribute("data-theme");
+      const newTheme = currentTheme === "dark" ? "light" : "dark";
+
+      document.documentElement.setAttribute("data-theme", newTheme);
+
+      if (newTheme === "dark") {
+        if (themeLabel) themeLabel.innerText = "Modo Claro";
+        if (themeIcon) themeIcon.className = "fa-solid fa-sun";
+      } else {
+        if (themeLabel) themeLabel.innerText = "Modo Escuro";
+        if (themeIcon) themeIcon.className = "fa-solid fa-moon";
+      }
+    });
+  }
 });
 
-document.getElementById("monthFilter").addEventListener("change", function () {
-  processData(globalRawData);
-});
-
+// Exibição de alertas fallback
 function showAlert(msg) {
   const box = document.getElementById("alertBox");
-  box.innerText = msg;
-  box.classList.remove("d-none");
+  if (box) {
+    box.innerText = msg;
+    box.classList.remove("d-none");
+  }
 }
 
+// Busca tolerante de nomes de colunas
 function getColValue(row, possibleNames) {
   const keys = Object.keys(row);
   for (let name of possibleNames) {
@@ -62,8 +151,11 @@ function getColValue(row, possibleNames) {
   return "";
 }
 
+// Preenchimento do filtro de meses
 function populateMonthFilter(data) {
   const monthSelect = document.getElementById("monthFilter");
+  if (!monthSelect) return;
+
   monthSelect.innerHTML =
     '<option value="ALL">📅 Todos os Meses (Consolidado Geral)</option>';
 
@@ -93,8 +185,10 @@ function populateMonthFilter(data) {
   monthSelect.disabled = sortedMonths.length === 0;
 }
 
+// Processamento central da base e cruzamento de dados
 function processData(data) {
-  const selectedMonth = document.getElementById("monthFilter").value;
+  const monthSelect = document.getElementById("monthFilter");
+  const selectedMonth = monthSelect ? monthSelect.value : "ALL";
 
   const filteredData = data.filter((row) => {
     if (selectedMonth === "ALL") return true;
@@ -301,36 +395,50 @@ function processData(data) {
   let parcNoPercent =
     parcTotal > 0 ? ((parcNo / parcTotal) * 100).toFixed(1) : 0;
 
-  document.getElementById("totalTickets").innerText = totalRegs;
-  document.getElementById(
-    "totalSlaOk"
-  ).innerHTML = `${totalSlaOkCount} <small class="fs-6 text-success fw-normal">(${slaOkPercent}%)</small>`;
-  document.getElementById("barSla").style.width = slaOkPercent + "%";
+  const totalTicketsEl = document.getElementById("totalTickets");
+  if (totalTicketsEl) totalTicketsEl.innerText = totalRegs;
 
-  document.getElementById("totalDefinitive").innerText = totalDefinitiveCount;
-  document.getElementById("barDef").style.width = defPercent + "%";
+  const totalSlaOkEl = document.getElementById("totalSlaOk");
+  if (totalSlaOkEl) {
+    totalSlaOkEl.innerHTML = `${totalSlaOkCount} <small class="fs-6 text-success fw-normal">(${slaOkPercent}%)</small>`;
+  }
+  const barSlaEl = document.getElementById("barSla");
+  if (barSlaEl) barSlaEl.style.width = slaOkPercent + "%";
 
-  document.getElementById("totalLoop").innerText = totalLoopCount;
-  document.getElementById("barLoop").style.width = loopPercent + "%";
+  const totalDefinitiveEl = document.getElementById("totalDefinitive");
+  if (totalDefinitiveEl) totalDefinitiveEl.innerText = totalDefinitiveCount;
+  const barDefEl = document.getElementById("barDef");
+  if (barDefEl) barDefEl.style.width = defPercent + "%";
 
-  document.getElementById("totalSlaNo").innerText = totalSlaNoCount;
-  document.getElementById("barNo").style.width = noPercent + "%";
+  const totalLoopEl = document.getElementById("totalLoop");
+  if (totalLoopEl) totalLoopEl.innerText = totalLoopCount;
+  const barLoopEl = document.getElementById("barLoop");
+  if (barLoopEl) barLoopEl.style.width = loopPercent + "%";
 
-  document.getElementById(
-    "slaInoperanteText"
-  ).innerText = `${inopTotal} chamados`;
-  document.getElementById(
-    "slaInoperanteSub"
-  ).innerText = `No prazo: ${inopOk} | Estouros: ${inopNo}`;
-  document.getElementById("badgeInop").innerText = `${inopNoPercent}% estouro`;
+  const totalSlaNoEl = document.getElementById("totalSlaNo");
+  if (totalSlaNoEl) totalSlaNoEl.innerText = totalSlaNoCount;
+  const barNoEl = document.getElementById("barNo");
+  if (barNoEl) barNoEl.style.width = noPercent + "%";
 
-  document.getElementById("slaParcialText").innerText = `${parcTotal} chamados`;
-  document.getElementById(
-    "slaParcialSub"
-  ).innerText = `No prazo: ${parcOk} | Estouros: ${parcNo}`;
-  document.getElementById(
-    "badgeParcial"
-  ).innerText = `${parcNoPercent}% estouro`;
+  const slaInopTextEl = document.getElementById("slaInoperanteText");
+  if (slaInopTextEl) slaInopTextEl.innerText = `${inopTotal} chamados`;
+
+  const slaInopSubEl = document.getElementById("slaInoperanteSub");
+  if (slaInopSubEl)
+    slaInopSubEl.innerText = `No prazo: ${inopOk} | Estouros: ${inopNo}`;
+
+  const badgeInopEl = document.getElementById("badgeInop");
+  if (badgeInopEl) badgeInopEl.innerText = `${inopNoPercent}% estouro`;
+
+  const slaParcTextEl = document.getElementById("slaParcialText");
+  if (slaParcTextEl) slaParcTextEl.innerText = `${parcTotal} chamados`;
+
+  const slaParcSubEl = document.getElementById("slaParcialSub");
+  if (slaParcSubEl)
+    slaParcSubEl.innerText = `No prazo: ${parcOk} | Estouros: ${parcNo}`;
+
+  const badgeParcialEl = document.getElementById("badgeParcial");
+  if (badgeParcialEl) badgeParcialEl.innerText = `${parcNoPercent}% estouro`;
 
   let operatorRanking = [];
   for (let op in operators) {
@@ -368,27 +476,21 @@ function processData(data) {
           ? "bg-secondary text-white"
           : "bg-dark text-white";
       topHtml += `
-                        <div class="col-md-4">
-                            <div class="podium-item h-100">
-                                <span class="badge ${badgeColor} mb-2">${medals[idx]}</span>
-                                <h6 class="text-dark fw-bold mb-1">${op.name}</h6>
-                                <p class="mb-1 text-success small"><strong>SLA Cumprido:</strong> ${op.taxaSla}% (${op.slaOk}/${op.total})</p>
-                                <p class="mb-0 text-muted small">Definitivas: <strong>${op.definitive}</strong> | Loops: <strong>${op.loop}</strong></p>
-                            </div>
-                        </div>
-                    `;
+            <div class="col-md-4">
+                <div class="podium-item h-100">
+                    <span class="badge ${badgeColor} mb-2">${medals[idx]}</span>
+                    <h6 class="text-dark fw-bold mb-1">${op.name}</h6>
+                    <p class="mb-1 text-success small"><strong>SLA Cumprido:</strong> ${op.taxaSla}% (${op.slaOk}/${op.total})</p>
+                    <p class="mb-0 text-muted small">Definitivas: <strong>${op.definitive}</strong> | Loops: <strong>${op.loop}</strong></p>
+                </div>
+            </div>
+        `;
     });
     topHtml += "</div>";
   }
-  document.getElementById("topPerformersText").innerHTML = topHtml;
+  const topPerfEl = document.getElementById("topPerformersText");
+  if (topPerfEl) topPerfEl.innerHTML = topHtml;
 
-  let bestSlaOp = operatorRanking.reduce(
-    (prev, curr) =>
-      parseFloat(curr.taxaSla) > parseFloat(prev.taxaSla)
-        ? curr
-        : operatorRanking[0],
-    operatorRanking[0] || { name: "N/A", taxaSla: 0 }
-  );
   let topProducer =
     productivityRanking.length > 0
       ? productivityRanking[0]
@@ -398,176 +500,186 @@ function processData(data) {
   let topCause =
     top10Causes.length > 0 ? top10Causes[0] : { cause: "N/A", count: 0 };
 
-  document.getElementById("insightsText").innerHTML = `
-                <div class="row g-3">
-                    <div class="col-md-6">
-                        <div class="p-3 border rounded bg-light h-100">
-                            <h6 class="fw-bold text-success mb-2"><i class="bi bi-check-circle-fill me-1"></i> Pontos Fortes da Operação</h6>
-                            <p class="mb-1 small"><strong>Maior Produtividade:</strong> O operador <strong>${topProducer.name}</strong> lidera o volume de encerramentos com <strong>${topProducer.total}</strong> chamados finalizados.</p>
-                            <p class="mb-1 small"><strong>Conformidade Geral de Prazo:</strong> ${slaOkPercent}% dos chamados resolvidos dentro do SLA (&le; 4h).</p>
-                            <p class="mb-0 small"><strong>Resolução Raiz:</strong> ${totalDefinitiveCount} tickets reincidentes estancados permanentemente.</p>
-                        </div>
-                    </div>
-                    <div class="col-md-6">
-                        <div class="p-3 border rounded bg-light h-100">
-                            <h6 class="fw-bold text-danger mb-2"><i class="bi bi-exclamation-octagon-fill me-1"></i> Alertas e Gargalos Críticos</h6>
-                            <p class="mb-1 small"><strong>Impacto Crítico:</strong> O volume de falhas <em>Inoperantes</em> apresenta <strong>${inopNoPercent}%</strong> de estouro de SLA.</p>
-                            <p class="mb-1 small"><strong>Caso Crônico de Rede:</strong> O Prime ID <strong>${worstPrime.primeId}</strong> acumula ${worstPrime.count} retornos.</p>
-                            <p class="mb-0 small"><strong>Principal Falha:</strong> "${topCause.cause}" lidera as ocorrências na base.</p>
-                        </div>
-                    </div>
-                </div>
-            `;
+  const insightsEl = document.getElementById("insightsText");
+  if (insightsEl) {
+    insightsEl.innerHTML = `
+      <div class="row g-3">
+          <div class="col-md-6">
+              <div class="p-3 border rounded bg-light h-100">
+                  <h6 class="fw-bold text-success mb-2"><i class="fa-solid fa-circle-check me-1"></i> Pontos Fortes da Operação</h6>
+                  <p class="mb-1 small"><strong>Maior Produtividade:</strong> O operador <strong>${topProducer.name}</strong> lidera o volume de encerramentos com <strong>${topProducer.total}</strong> chamados finalizados.</p>
+                  <p class="mb-1 small"><strong>Conformidade Geral de Prazo:</strong> ${slaOkPercent}% dos chamados resolvidos dentro do SLA (&le; 4h).</p>
+                  <p class="mb-0 small"><strong>Resolução Raiz:</strong> ${totalDefinitiveCount} tickets reincidentes estancados permanentemente.</p>
+              </div>
+          </div>
+          <div class="col-md-6">
+              <div class="p-3 border rounded bg-light h-100">
+                  <h6 class="fw-bold text-danger mb-2"><i class="fa-solid fa-triangle-exclamation me-1"></i> Alertas e Gargalos Críticos</h6>
+                  <p class="mb-1 small"><strong>Impacto Crítico:</strong> O volume de falhas <em>Inoperantes</em> apresenta <strong>${inopNoPercent}%</strong> de estouro de SLA.</p>
+                  <p class="mb-1 small"><strong>Caso Crônico de Rede:</strong> O Prime ID <strong>${worstPrime.primeId}</strong> acumula ${worstPrime.count} retornos.</p>
+                  <p class="mb-0 small"><strong>Principal Falha:</strong> "${topCause.cause}" lidera as ocorrências na base.</p>
+              </div>
+          </div>
+      </div>
+    `;
+  }
 
-  document.getElementById("actionPlanText").innerHTML = `
-                <div class="row g-3">
-                    <div class="col-md-4">
-                        <div class="p-3 border rounded bg-white h-100 border-start border-4 border-danger">
-                            <h6 class="fw-bold text-danger mb-2"><i class="bi bi-1-circle-fill me-1"></i> Foco em Inoperantes</h6>
-                            <p class="small text-muted mb-0">Como chamados inoperantes impactam totalmente o cliente, priorize a fila de atendimento imediato para este impacto e reduza os ${inopNo} estouros atuais.</p>
-                        </div>
-                    </div>
-                    <div class="col-md-4">
-                        <div class="p-3 border rounded bg-white h-100 border-start border-4 border-warning">
-                            <h6 class="fw-bold text-warning mb-2" style="color: var(--claro-orange) !important;"><i class="bi bi-2-circle-fill me-1"></i> Tratativa de Prime IDs</h6>
-                            <p class="small text-muted mb-0">Encaminhar os Top 10 Prime IDs listados abaixo para a equipe de manutenção corretiva externa (campo/infraestrutura) para eliminar a raiz do problema.</p>
-                        </div>
-                    </div>
-                    <div class="col-md-4">
-                        <div class="p-3 border rounded bg-white h-100 border-start border-4 border-success">
-                            <h6 class="fw-bold text-success mb-2"><i class="bi bi-3-circle-fill me-1"></i> Padronização de Soluções</h6>
-                            <p class="small text-muted mb-0">Disseminar o conhecimento das <strong>Soluções Detalhadas</strong> mais eficazes utilizadas pelos operadores do Grupo 1 (Eficazes) para reduzir os loops de reincidência.</p>
-                        </div>
-                    </div>
-                </div>
-            `;
+  const actionPlanEl = document.getElementById("actionPlanText");
+  if (actionPlanEl) {
+    actionPlanEl.innerHTML = `
+      <div class="row g-3">
+          <div class="col-md-4">
+              <div class="p-3 border rounded bg-white h-100 border-start border-4 border-danger">
+                  <h6 class="fw-bold text-danger mb-2"><i class="fa-solid fa-bullseye me-1"></i> Foco em Inoperantes</h6>
+                  <p class="small text-muted mb-0">Como chamados inoperantes impactam totalmente o cliente, priorize a fila de atendimento imediato para este impacto e reduza os ${inopNo} estouros atuais.</p>
+              </div>
+          </div>
+          <div class="col-md-4">
+              <div class="p-3 border rounded bg-white h-100 border-start border-4 border-warning">
+                  <h6 class="fw-bold text-warning mb-2" style="color: var(--claro-orange) !important;"><i class="fa-solid fa-arrows-rotate me-1"></i> Tratativa de Prime IDs</h6>
+                  <p class="small text-muted mb-0">Encaminhar os Top 10 Prime IDs listados abaixo para a equipe de manutenção corretiva externa (campo/infraestrutura) para eliminar a raiz do problema.</p>
+              </div>
+          </div>
+          <div class="col-md-4">
+              <div class="p-3 border rounded bg-white h-100 border-start border-4 border-success">
+                  <h6 class="fw-bold text-success mb-2"><i class="fa-solid fa-diagram-project me-1"></i> Padronização de Soluções</h6>
+                  <p class="small text-muted mb-0">Disseminar o conhecimento das <strong>Soluções Detalhadas</strong> mais eficazes utilizadas pelos operadores do Grupo 1 (Eficazes) para reduzir os loops de reincidência.</p>
+              </div>
+          </div>
+      </div>
+    `;
+  }
 
   // Tabela Top 10 Produtividade
   const tableTopProductivityBody = document.querySelector(
     "#tableTopProductivity tbody"
   );
-  tableTopProductivityBody.innerHTML = "";
-  if (top10Productivity.length === 0) {
-    tableTopProductivityBody.innerHTML = `<tr><td colspan="5" class="text-center text-muted py-3">Nenhum operador encontrado.</td></tr>`;
-  } else {
-    top10Productivity.forEach((op, idx) => {
-      let medals = ["🥇", "🥈", "🥉"];
-      let rankDisplay = idx < 3 ? `${medals[idx]} ${idx + 1}º` : `${idx + 1}º`;
-      tableTopProductivityBody.innerHTML += `
-                        <tr>
-                            <td class="fw-bold text-secondary">${rankDisplay}</td>
-                            <td class="fw-bold">${op.name}</td>
-                            <td><span class="badge bg-danger">${op.total} chamados</span></td>
-                            <td class="text-success fw-bold">${op.slaOk}</td>
-                            <td><span class="badge bg-success">${op.taxaSla}%</span></td>
-                        </tr>
-                    `;
-    });
+  if (tableTopProductivityBody) {
+    tableTopProductivityBody.innerHTML = "";
+    if (top10Productivity.length === 0) {
+      tableTopProductivityBody.innerHTML = `<tr><td colspan="5" class="text-center text-muted py-3">Nenhum operador encontrado.</td></tr>`;
+    } else {
+      top10Productivity.forEach((op, idx) => {
+        let medals = ["🥇", "🥈", "🥉"];
+        let rankDisplay =
+          idx < 3 ? `${medals[idx]} ${idx + 1}º` : `${idx + 1}º`;
+        tableTopProductivityBody.innerHTML += `
+            <tr>
+                <td class="fw-bold text-secondary">${rankDisplay}</td>
+                <td class="fw-bold">${op.name}</td>
+                <td><span class="badge bg-danger">${op.total} chamados</span></td>
+                <td class="text-success fw-bold">${op.slaOk}</td>
+                <td><span class="badge bg-success">${op.taxaSla}%</span></td>
+            </tr>
+        `;
+      });
+    }
   }
 
   // Tabela Top 10 Prime IDs
   const tableTopPrimeBody = document.querySelector("#tableTopPrime tbody");
-  tableTopPrimeBody.innerHTML = "";
-  if (top10Primes.length === 0) {
-    tableTopPrimeBody.innerHTML = `<tr><td colspan="4" class="text-center text-muted py-3">Nenhum Prime ID reincidente encontrado no período.</td></tr>`;
-  } else {
-    top10Primes.forEach((item, idx) => {
-      let badgeSeverity =
-        item.count >= 5
-          ? '<span class="badge bg-danger">Crítico (>=5)</span>'
-          : '<span class="badge bg-warning text-dark">Alerta (2-4)</span>';
-      tableTopPrimeBody.innerHTML += `
-                        <tr>
-                            <td class="fw-bold text-secondary">#${idx + 1}</td>
-                            <td class="fw-bold font-monospace">${
-                              item.primeId
-                            }</td>
-                            <td><span class="badge bg-dark">${
-                              item.count
-                            } ocorrências</span></td>
-                            <td>${badgeSeverity}</td>
-                        </tr>
-                    `;
-    });
+  if (tableTopPrimeBody) {
+    tableTopPrimeBody.innerHTML = "";
+    if (top10Primes.length === 0) {
+      tableTopPrimeBody.innerHTML = `<tr><td colspan="4" class="text-center text-muted py-3">Nenhum Prime ID reincidente encontrado no período.</td></tr>`;
+    } else {
+      top10Primes.forEach((item, idx) => {
+        let badgeSeverity =
+          item.count >= 5
+            ? '<span class="badge bg-danger">Crítico (>=5)</span>'
+            : '<span class="badge bg-warning text-dark">Alerta (2-4)</span>';
+        tableTopPrimeBody.innerHTML += `
+            <tr>
+                <td class="fw-bold text-secondary">#${idx + 1}</td>
+                <td class="fw-bold font-monospace">${item.primeId}</td>
+                <td><span class="badge bg-dark">${
+                  item.count
+                } ocorrências</span></td>
+                <td>${badgeSeverity}</td>
+            </tr>
+        `;
+      });
+    }
   }
 
   // Tabela Top 10 Causas
   const tableTopCausesBody = document.querySelector("#tableTopCauses tbody");
-  tableTopCausesBody.innerHTML = "";
-  if (top10Causes.length === 0) {
-    tableTopCausesBody.innerHTML = `<tr><td colspan="3" class="text-center text-muted py-3">Coluna "Descrição Solução" não encontrada na planilha.</td></tr>`;
-  } else {
-    top10Causes.forEach((item, idx) => {
-      tableTopCausesBody.innerHTML += `
-                        <tr>
-                            <td class="fw-bold text-secondary">#${idx + 1}</td>
-                            <td>${item.cause}</td>
-                            <td><span class="badge bg-danger">${
-                              item.count
-                            }</span></td>
-                        </tr>
-                    `;
-    });
+  if (tableTopCausesBody) {
+    tableTopCausesBody.innerHTML = "";
+    if (top10Causes.length === 0) {
+      tableTopCausesBody.innerHTML = `<tr><td colspan="3" class="text-center text-muted py-3">Coluna "Descrição Solução" não encontrada na planilha.</td></tr>`;
+    } else {
+      top10Causes.forEach((item, idx) => {
+        tableTopCausesBody.innerHTML += `
+            <tr>
+                <td class="fw-bold text-secondary">#${idx + 1}</td>
+                <td>${item.cause}</td>
+                <td><span class="badge bg-danger">${item.count}</span></td>
+            </tr>
+        `;
+      });
+    }
   }
 
   // Tabela Top 10 Soluções
   const tableTopSolutionsBody = document.querySelector(
     "#tableTopSolutions tbody"
   );
-  tableTopSolutionsBody.innerHTML = "";
-  if (top10Solutions.length === 0) {
-    tableTopSolutionsBody.innerHTML = `<tr><td colspan="3" class="text-center text-muted py-3">Coluna "Solução Detalhada" não encontrada na planilha.</td></tr>`;
-  } else {
-    top10Solutions.forEach((item, idx) => {
-      tableTopSolutionsBody.innerHTML += `
-                        <tr>
-                            <td class="fw-bold text-secondary">#${idx + 1}</td>
-                            <td>${item.solution}</td>
-                            <td><span class="badge bg-success">${
-                              item.count
-                            }</span></td>
-                        </tr>
-                    `;
-    });
+  if (tableTopSolutionsBody) {
+    tableTopSolutionsBody.innerHTML = "";
+    if (top10Solutions.length === 0) {
+      tableTopSolutionsBody.innerHTML = `<tr><td colspan="3" class="text-center text-muted py-3">Coluna "Solução Detalhada" não encontrada na planilha.</td></tr>`;
+    } else {
+      top10Solutions.forEach((item, idx) => {
+        tableTopSolutionsBody.innerHTML += `
+            <tr>
+                <td class="fw-bold text-secondary">#${idx + 1}</td>
+                <td>${item.solution}</td>
+                <td><span class="badge bg-success">${item.count}</span></td>
+            </tr>
+        `;
+      });
+    }
   }
 
   const tableDefinitiveBody = document.querySelector("#tableDefinitive tbody");
   const tableLoopBody = document.querySelector("#tableLoop tbody");
-  tableDefinitiveBody.innerHTML = "";
-  tableLoopBody.innerHTML = "";
+
+  if (tableDefinitiveBody) tableDefinitiveBody.innerHTML = "";
+  if (tableLoopBody) tableLoopBody.innerHTML = "";
 
   let chartSortedOps = [...operatorRanking].sort((a, b) => b.total - a.total);
   const chartLabels = chartSortedOps.map((d) => d.name);
   const chartTotals = chartSortedOps.map((d) => d.total);
 
   operatorRanking.forEach((d) => {
-    if (d.definitive > 0) {
+    if (d.definitive > 0 && tableDefinitiveBody) {
       tableDefinitiveBody.innerHTML += `
-                    <tr>
-                        <td class="fw-bold">${d.name}</td>
-                        <td>${d.total}</td>
-                        <td class="text-success fw-bold">${d.slaOk}</td>
-                        <td class="text-danger fw-bold">${d.slaNo}</td>
-                        <td><span class="badge bg-success px-3 py-2">${d.definitive} resolução(ões) definitiva(s)</span></td>
-                    </tr>`;
+        <tr>
+            <td class="fw-bold">${d.name}</td>
+            <td>${d.total}</td>
+            <td class="text-success fw-bold">${d.slaOk}</td>
+            <td class="text-danger fw-bold">${d.slaNo}</td>
+            <td><span class="badge bg-success px-3 py-2">${d.definitive} resolução(ões) definitiva(s)</span></td>
+        </tr>`;
     }
 
-    if (d.loop > 0) {
+    if (d.loop > 0 && tableLoopBody) {
       tableLoopBody.innerHTML += `
-                    <tr>
-                        <td class="fw-bold">${d.name}</td>
-                        <td>${d.total}</td>
-                        <td class="text-success fw-bold">${d.slaOk}</td>
-                        <td class="text-danger fw-bold">${d.slaNo}</td>
-                        <td><span class="badge bg-warning text-dark px-3 py-2" style="background-color: var(--claro-orange) !important; color: white !important;">${d.loop} ocorrência(s) em loop</span></td>
-                    </tr>`;
+        <tr>
+            <td class="fw-bold">${d.name}</td>
+            <td>${d.total}</td>
+            <td class="text-success fw-bold">${d.slaOk}</td>
+            <td class="text-danger fw-bold">${d.slaNo}</td>
+            <td><span class="badge bg-warning text-dark px-3 py-2" style="background-color: var(--claro-orange) !important; color: white !important;">${d.loop} ocorrência(s) em loop</span></td>
+        </tr>`;
     }
   });
 
-  if (tableDefinitiveBody.innerHTML === "") {
+  if (tableDefinitiveBody && tableDefinitiveBody.innerHTML === "") {
     tableDefinitiveBody.innerHTML = `<tr><td colspan="5" class="text-center text-muted py-3">Nenhum registro encontrado para o filtro.</td></tr>`;
   }
-  if (tableLoopBody.innerHTML === "") {
+  if (tableLoopBody && tableLoopBody.innerHTML === "") {
     tableLoopBody.innerHTML = `<tr><td colspan="5" class="text-center text-muted py-3">Nenhum registro encontrado para o filtro.</td></tr>`;
   }
 
@@ -580,11 +692,14 @@ function processData(data) {
   );
 }
 
+// Renderização dos gráficos interativos via Chart.js
 function renderCharts(labels, totals, slaOkCount, loopCount, slaNoCount) {
   if (opChartInstance) opChartInstance.destroy();
   if (doughnutChartInstance) doughnutChartInstance.destroy();
 
   const canvasEl = document.getElementById("operatorChart");
+  if (!canvasEl) return;
+
   const dynamicHeight = Math.max(300, labels.length * 30);
   canvasEl.parentNode.style.height = dynamicHeight + "px";
 
@@ -627,7 +742,10 @@ function renderCharts(labels, totals, slaOkCount, loopCount, slaNoCount) {
     },
   });
 
-  const ctx2 = document.getElementById("slaDoughnutChart").getContext("2d");
+  const doughnutCanvas = document.getElementById("slaDoughnutChart");
+  if (!doughnutCanvas) return;
+
+  const ctx2 = doughnutCanvas.getContext("2d");
   doughnutChartInstance = new Chart(ctx2, {
     type: "doughnut",
     data: {
@@ -662,26 +780,82 @@ function renderCharts(labels, totals, slaOkCount, loopCount, slaNoCount) {
   });
 }
 
-themeToggleBtn.addEventListener("click", () => {
-  const currentTheme = document.documentElement.getAttribute("data-theme");
-  const newTheme = currentTheme === "dark" ? "light" : "dark";
+// ==========================================================================
+// Sistema Unificado de Modais e Toasts (Substitui os alerts nativos)
+// ==========================================================================
 
-  document.documentElement.setAttribute("data-theme", newTheme);
+// Exibe um Modal customizado no tema ativo
+function showAppModal(title, message, type = "info", onConfirm = null) {
+  const modalEl = document.getElementById("appModal");
+  if (!modalEl) return alert(message); // Fallback de emergência
 
-  if (newTheme === "dark") {
-    themeLabel.innerText = "Modo Claro";
-    themeIcon.className = "fa-solid fa-moon";
-  } else {
-    themeLabel.innerText = "Modo Escuro";
-    themeIcon.className = "fa-solid fa-sun";
+  const modalTitle = document.getElementById("appModalLabel");
+  const modalBody = document.getElementById("appModalBody");
+  const modalIcon = document.getElementById("modalIcon");
+  const modalIconBox = document.getElementById("modalIconBox");
+  const confirmBtn = document.getElementById("modalConfirmBtn");
+
+  if (modalTitle) modalTitle.innerText = title;
+  if (modalBody) modalBody.innerHTML = message;
+
+  // Ajusta ícones e cores de acordo com o tipo de mensagem
+  if (modalIcon && modalIconBox) {
+    if (type === "danger" || type === "error") {
+      modalIcon.className = "fa-solid fa-triangle-exclamation text-danger fs-5";
+      modalIconBox.className = "icon-shape bg-danger-subtle rounded-3 p-2";
+    } else if (type === "warning") {
+      modalIcon.className = "fa-solid fa-circle-exclamation text-warning fs-5";
+      modalIconBox.className = "icon-shape bg-warning-subtle rounded-3 p-2";
+    } else if (type === "success") {
+      modalIcon.className = "fa-solid fa-circle-check text-success fs-5";
+      modalIconBox.className = "icon-shape bg-success-subtle rounded-3 p-2";
+    } else {
+      modalIcon.className = "fa-solid fa-circle-info text-primary fs-5";
+      modalIconBox.className = "icon-shape bg-primary-subtle rounded-3 p-2";
+    }
   }
-});
 
-document.getElementById("excelFile").addEventListener("change", function (e) {
-  const fileName = e.target.files[0]
-    ? e.target.files[0].name
-    : "Nenhum arquivo selecionado...";
-  document.getElementById(
-    "fileNameDisplay"
-  ).innerHTML = `<i class="fa-solid fa-file-excel me-2 text-success"></i>${fileName}`;
-});
+  // Gerencia o botão de confirmação (para ações destrutivas ou de prosseguir)
+  if (confirmBtn) {
+    if (typeof onConfirm === "function") {
+      confirmBtn.classList.remove("d-none");
+      confirmBtn.onclick = () => {
+        onConfirm();
+        const bsModal = bootstrap.Modal.getInstance(modalEl);
+        if (bsModal) bsModal.hide();
+      };
+    } else {
+      confirmBtn.classList.add("d-none");
+    }
+  }
+
+  const bsModal = new bootstrap.Modal(modalEl);
+  bsModal.show();
+}
+
+// Exibe um Toast rápido e discreto no canto inferior direito
+function showToast(message, type = "success") {
+  const toastEl = document.getElementById("appToast");
+  if (!toastEl) return;
+
+  const toastMessage = document.getElementById("toastMessage");
+  const toastIcon = document.getElementById("toastIcon");
+
+  if (toastMessage) toastMessage.innerText = message;
+
+  if (toastIcon) {
+    if (type === "error" || type === "danger") {
+      toastIcon.className = "fa-solid fa-circle-xmark text-danger fs-5";
+    } else if (type === "warning") {
+      toastIcon.className =
+        "fa-solid fa-triangle-exclamation text-warning fs-5";
+    } else if (type === "info") {
+      toastIcon.className = "fa-solid fa-circle-info text-primary fs-5";
+    } else {
+      toastIcon.className = "fa-solid fa-circle-check text-success fs-5";
+    }
+  }
+
+  const toast = new bootstrap.Toast(toastEl, { delay: 4000 });
+  toast.show();
+}

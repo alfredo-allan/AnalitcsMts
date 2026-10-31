@@ -402,3 +402,36 @@ body {
     flex-shrink: 0 !important;
   }
 }
+/* ==========================================================================
+   Modais e Toasts Customizados com Suporte a Temas (Light / Dark)
+   ========================================================================== */
+.modal-custom-theme,
+.toast-custom-theme {
+  background-color: var(--bg-card) !important;
+  color: var(--text-main) !important;
+  border: 1px solid var(--border-color) !important;
+  border-radius: 16px !important;
+  box-shadow: var(--shadow-hover) !important;
+  backdrop-filter: blur(12px);
+}
+
+.modal-custom-theme .btn-close {
+  filter: var(--btn-close-filter, none);
+}
+
+[data-theme='dark'] .modal-custom-theme .btn-close,
+[data-theme='dark'] .toast-custom-theme .btn-close {
+  filter: invert(1) grayscale(100%) brightness(200%);
+}
+
+.btn-modal-dismiss {
+  background-color: var(--bg-card-subtle) !important;
+  color: var(--text-main) !important;
+  border: 1px solid var(--border-color) !important;
+  border-radius: 10px !important;
+  font-weight: 600;
+}
+
+.btn-modal-dismiss:hover {
+  background-color: var(--border-color) !important;
+}
